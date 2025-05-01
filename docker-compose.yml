@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  blitzbatch-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: blitzbatch-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/blitzbatch_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PORT=3000
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - uploads:/app/uploads
+    networks:
+      - blitzbatch-network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: blitzbatch-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - blitzbatch-network
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: blitzbatch-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - blitzbatch-network
+
+  mongo-express:
+    image: mongo-express
+    container_name: blitzbatch-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+    depends_on:
+      - mongodb
+    networks:
+      - blitzbatch-network
+
+networks:
+  blitzbatch-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
+  uploads:
